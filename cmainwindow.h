@@ -1,7 +1,13 @@
 #ifndef CMAINWINDOW_H
 #define CMAINWINDOW_H
 
+
+#include "cfile.h"
+
 #include <QMainWindow>
+#include <QTreeView>
+#include <QStandardItemModel>
+
 
 namespace Ui {
 class cMainWindow;
@@ -16,12 +22,17 @@ public:
 	~cMainWindow();
 
 private slots:
-	void on_m_lpLoadListFromFileLeft_triggered(QAction *arg1);
-
-	void on_m_lpLoadListFromFileRight_triggered(QAction *arg1);
+	void				on_m_lpLoadListFromFileLeft_clicked();
+	void				on_m_lpLoadListFromFileRight_clicked();
 
 private:
-	Ui::cMainWindow *ui;
+	Ui::cMainWindow*	ui;
+	QStandardItemModel*	m_lpLeftListModel;
+	QStandardItemModel*	m_lpRightListModel;
+	cFileList			m_listLeft;
+	cFileList			m_listRight;
+
+	void				displayList(QStandardItemModel* lpModel, cFileList& fileList);
 };
 
 #endif // CMAINWINDOW_H
