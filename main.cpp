@@ -8,10 +8,10 @@ int main(int argc, char *argv[])
 {
 	QApplication	a(argc, argv);
 
-	a.setApplicationDisplayName("pictureLibrary");
+	a.setApplicationDisplayName("compareDir");
 	a.setOrganizationName("WIN-DESIGN");
 	a.setOrganizationDomain("windesign.at");
-	a.setApplicationName("pictureLibrary");
+	a.setApplicationName("compareDir");
 
 	QSettings		settings;
 

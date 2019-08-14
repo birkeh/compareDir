@@ -4,6 +4,8 @@
 #include "ui_cmainwindow.h"
 
 #include <QSettings>
+#include <QDir>
+#include <QFileDialog>
 
 
 //#define TREEVIEW
@@ -41,11 +43,6 @@ cMainWindow::cMainWindow(QWidget *parent) :
 {
 	initUI();
 	createActions();
-
-	ui->m_lpMatchDir->setChecked(g_bMatchDir);
-	ui->m_lpMatchFile->setChecked(g_bMatchFile);
-	ui->m_lpMatchDateTime->setChecked(g_bMatchDateTime);
-	ui->m_lpMatchSize->setChecked(g_bMatchSize);
 
 	m_initializing	= false;
 }
@@ -112,6 +109,16 @@ void cMainWindow::initUI()
 	qint32		iWidth2	= settings.value("main/splitter2", QVariant::fromValue(-1)).toInt();
 
 	ui->m_lpSplitter->setSizes(QList<int>() << iWidth1 << iWidth2);
+
+	g_bMatchDir			= settings.value("filter/dir", QVariant::fromValue(true)).toBool();
+	g_bMatchFile		= settings.value("filter/file", QVariant::fromValue(true)).toBool();
+	g_bMatchDateTime	= settings.value("filter/datetime", QVariant::fromValue(true)).toBool();
+	g_bMatchSize		= settings.value("filter/size", QVariant::fromValue(true)).toBool();
+
+	ui->m_lpMatchDir->setChecked(g_bMatchDir);
+	ui->m_lpMatchFile->setChecked(g_bMatchFile);
+	ui->m_lpMatchDateTime->setChecked(g_bMatchDateTime);
+	ui->m_lpMatchSize->setChecked(g_bMatchSize);
 }
 
 void cMainWindow::createActions()
@@ -143,9 +150,19 @@ void cMainWindow::createContextActions()
 
 void cMainWindow::onLoadListFromFileLeft()
 {
+	QSettings	settings;
+	QString		szPath	= settings.value("main/leftDir", QDir::homePath()).toString();
+	QString		szFile	= QFileDialog::getOpenFileName(this, tr("Open Text File"), szPath, tr("Text Files (*.txt)"));
+
+	if(szFile.isEmpty())
+		return;
+
+	settings.setValue("main/leftDir", QVariant::fromValue(szFile.left(szFile.lastIndexOf("/"))));
+
 	m_loading	= true;
 	m_lpProgressBar->setVisible(true);
-	m_listLeft.load("C:\\Users\\VET0572\\Documents\\github\\build-dir2csv-Desktop_Qt_5_13_0_MinGW_64_bit-Release\\deploy\\photos.txt", m_lpProgressBar);
+//	m_listLeft.load("C:\\Users\\VET0572\\Documents\\github\\build-dir2csv-Desktop_Qt_5_13_0_MinGW_64_bit-Release\\deploy\\photos.txt", m_lpProgressBar);
+	m_listLeft.load(szFile, m_lpProgressBar);
 	displayList(ui->m_lpLeftList, m_lpLeftListModel, m_listLeft);
 	m_lpProgressBar->setVisible(false);
 	m_loading	= false;
@@ -153,9 +170,19 @@ void cMainWindow::onLoadListFromFileLeft()
 
 void cMainWindow::onLoadListFromFileRight()
 {
+	QSettings	settings;
+	QString		szPath	= settings.value("main/rightDir", QDir::homePath()).toString();
+	QString		szFile	= QFileDialog::getOpenFileName(this, tr("Open Text File"), szPath, tr("Text Files (*.txt)"));
+
+	if(szFile.isEmpty())
+		return;
+
+	settings.setValue("main/rightDir", QVariant::fromValue(szFile.left(szFile.lastIndexOf("/"))));
+
 	m_loading	= true;
 	m_lpProgressBar->setVisible(true);
-	m_listRight.load("C:\\Users\\VET0572\\Documents\\github\\build-dir2csv-Desktop_Qt_5_13_0_MinGW_64_bit-Release\\deploy\\photos1.txt", m_lpProgressBar);
+//	m_listRight.load("C:\\Users\\VET0572\\Documents\\github\\build-dir2csv-Desktop_Qt_5_13_0_MinGW_64_bit-Release\\deploy\\photos1.txt", m_lpProgressBar);
+	m_listRight.load(szFile, m_lpProgressBar);
 	displayList(ui->m_lpRightList, m_lpRightListModel, m_listRight);
 	m_lpProgressBar->setVisible(false);
 	m_loading	= false;
@@ -321,6 +348,9 @@ void cMainWindow::onMatchDirChecked(bool checked)
 
 	g_bMatchDir	= checked;
 
+	QSettings	settings;
+	settings.setValue("filter/dir", QVariant::fromValue(checked));
+
 	if(m_lpLeftListProxyModel->filterFile())
 		m_lpLeftListProxyModel->invalidate();
 	if(m_lpRightListProxyModel->filterFile())
@@ -333,6 +363,9 @@ void cMainWindow::onMatchFileChecked(bool checked)
 		return;
 
 	g_bMatchFile	= checked;
+
+	QSettings	settings;
+	settings.setValue("filter/file", QVariant::fromValue(checked));
 
 	if(m_lpLeftListProxyModel->filterFile())
 		m_lpLeftListProxyModel->invalidate();
@@ -347,6 +380,9 @@ void cMainWindow::onMatchDateTimeChecked(bool checked)
 
 	g_bMatchDateTime	= checked;
 
+	QSettings	settings;
+	settings.setValue("filter/datetime", QVariant::fromValue(checked));
+
 	if(m_lpLeftListProxyModel->filterFile())
 		m_lpLeftListProxyModel->invalidate();
 	if(m_lpRightListProxyModel->filterFile())
@@ -359,6 +395,9 @@ void cMainWindow::onMatchSizeChecked(bool checked)
 		return;
 
 	g_bMatchSize	= checked;
+
+	QSettings	settings;
+	settings.setValue("filter/size", QVariant::fromValue(checked));
 
 	if(m_lpLeftListProxyModel->filterFile())
 		m_lpLeftListProxyModel->invalidate();
