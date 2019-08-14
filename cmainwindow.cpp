@@ -7,6 +7,9 @@
 #include <QDir>
 #include <QFileDialog>
 
+#include <QElapsedTimer>
+#include <QDebug>
+
 
 //#define TREEVIEW
 
@@ -131,6 +134,9 @@ void cMainWindow::createActions()
 	connect(ui->m_lpLoadListFromFileLeft,			&QToolButton::clicked,					this,	&cMainWindow::onLoadListFromFileLeft);
 	connect(ui->m_lpLoadListFromFileRight,			&QToolButton::clicked,					this,	&cMainWindow::onLoadListFromFileRight);
 
+	connect(ui->m_lpLoadListFromDirLeft,			&QToolButton::clicked,					this,	&cMainWindow::onLoadListFromDirLeft);
+	connect(ui->m_lpLoadListFromDirRight,			&QToolButton::clicked,					this,	&cMainWindow::onLoadListFromDirRight);
+
 	connect(ui->m_lpLeftList->selectionModel(),		&QItemSelectionModel::selectionChanged,	this,	&cMainWindow::onLeftListSelected);
 	connect(ui->m_lpRightList->selectionModel(),	&QItemSelectionModel::selectionChanged,	this,	&cMainWindow::onRightListSelected);
 
@@ -138,6 +144,11 @@ void cMainWindow::createActions()
 	connect(ui->m_lpMatchFile,						&QCheckBox::clicked,					this,	&cMainWindow::onMatchFileChecked);
 	connect(ui->m_lpMatchDateTime,					&QCheckBox::clicked,					this,	&cMainWindow::onMatchDateTimeChecked);
 	connect(ui->m_lpMatchSize,						&QCheckBox::clicked,					this,	&cMainWindow::onMatchSizeChecked);
+
+	connect(ui->m_lpMarkDifference,					&QToolButton::clicked,					this,	&cMainWindow::onMarkDifference);
+
+	connect(ui->m_lpClearSelectionLeft,				&QToolButton::clicked,					this,	&cMainWindow::onClearSelectionLeft);
+	connect(ui->m_lpClearSelectionRight,			&QToolButton::clicked,					this,	&cMainWindow::onClearSelectionRight);
 }
 
 void cMainWindow::createFileActions()
@@ -151,19 +162,23 @@ void cMainWindow::createContextActions()
 void cMainWindow::onLoadListFromFileLeft()
 {
 	QSettings	settings;
-	QString		szPath	= settings.value("main/leftDir", QDir::homePath()).toString();
+	QString		szPath	= settings.value("main/leftFile", QDir::homePath()).toString();
 	QString		szFile	= QFileDialog::getOpenFileName(this, tr("Open Text File"), szPath, tr("Text Files (*.txt)"));
 
 	if(szFile.isEmpty())
 		return;
 
-	settings.setValue("main/leftDir", QVariant::fromValue(szFile.left(szFile.lastIndexOf("/"))));
+	settings.setValue("main/leftFile", QVariant::fromValue(szFile.left(szFile.lastIndexOf("/"))));
 
 	m_loading	= true;
 	m_lpProgressBar->setVisible(true);
-//	m_listLeft.load("C:\\Users\\VET0572\\Documents\\github\\build-dir2csv-Desktop_Qt_5_13_0_MinGW_64_bit-Release\\deploy\\photos.txt", m_lpProgressBar);
+	ui->m_lpStatusBar->showMessage("loading list...");
+	qApp->processEvents();
 	m_listLeft.load(szFile, m_lpProgressBar);
+	ui->m_lpStatusBar->showMessage("populating list...");
+	qApp->processEvents();
 	displayList(ui->m_lpLeftList, m_lpLeftListModel, m_listLeft);
+	ui->m_lpStatusBar->showMessage("done.", 5000);
 	m_lpProgressBar->setVisible(false);
 	m_loading	= false;
 }
@@ -171,21 +186,149 @@ void cMainWindow::onLoadListFromFileLeft()
 void cMainWindow::onLoadListFromFileRight()
 {
 	QSettings	settings;
-	QString		szPath	= settings.value("main/rightDir", QDir::homePath()).toString();
+	QString		szPath	= settings.value("main/rightFile", QDir::homePath()).toString();
 	QString		szFile	= QFileDialog::getOpenFileName(this, tr("Open Text File"), szPath, tr("Text Files (*.txt)"));
 
 	if(szFile.isEmpty())
 		return;
 
-	settings.setValue("main/rightDir", QVariant::fromValue(szFile.left(szFile.lastIndexOf("/"))));
+	settings.setValue("main/rightFile", QVariant::fromValue(szFile.left(szFile.lastIndexOf("/"))));
 
 	m_loading	= true;
 	m_lpProgressBar->setVisible(true);
-//	m_listRight.load("C:\\Users\\VET0572\\Documents\\github\\build-dir2csv-Desktop_Qt_5_13_0_MinGW_64_bit-Release\\deploy\\photos1.txt", m_lpProgressBar);
+	ui->m_lpStatusBar->showMessage("loading list...");
+	qApp->processEvents();
 	m_listRight.load(szFile, m_lpProgressBar);
+	ui->m_lpStatusBar->showMessage("populating list...");
+	qApp->processEvents();
 	displayList(ui->m_lpRightList, m_lpRightListModel, m_listRight);
+	ui->m_lpStatusBar->showMessage("done.", 5000);
 	m_lpProgressBar->setVisible(false);
 	m_loading	= false;
+}
+
+void cMainWindow::onLoadListFromDirLeft()
+{
+	QSettings	settings;
+	QString		szPath	= settings.value("main/leftDir", QDir::homePath()).toString();
+	QString		szDir	= QFileDialog::getExistingDirectory(this, tr("Open Directory"), szPath, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+	if(szDir.isEmpty())
+		return;
+
+	settings.setValue("main/leftDir", QVariant::fromValue(szDir));
+
+	m_loading	= true;
+	ui->m_lpStatusBar->showMessage("loading list...");
+	qApp->processEvents();
+	m_listLeft.load(szDir, ui->m_lpStatusBar);
+	ui->m_lpStatusBar->showMessage("populating list...");
+	qApp->processEvents();
+	displayList(ui->m_lpLeftList, m_lpLeftListModel, m_listLeft);
+	ui->m_lpStatusBar->showMessage("done.", 5000);
+	m_loading	= false;
+}
+
+void cMainWindow::onLoadListFromDirRight()
+{
+	QSettings	settings;
+	QString		szPath	= settings.value("main/rightDir", QDir::homePath()).toString();
+	QString		szDir	= QFileDialog::getExistingDirectory(this, tr("Open Directory"), szPath, QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
+	if(szDir.isEmpty())
+		return;
+
+	settings.setValue("main/rightDir", QVariant::fromValue(szDir));
+
+	m_loading	= true;
+	ui->m_lpStatusBar->showMessage("loading list...");
+	qApp->processEvents();
+	m_listRight.load(szDir, ui->m_lpStatusBar);
+	ui->m_lpStatusBar->showMessage("populating list...");
+	qApp->processEvents();
+	displayList(ui->m_lpRightList, m_lpRightListModel, m_listRight);
+	ui->m_lpStatusBar->showMessage("done.", 5000);
+	m_loading	= false;
+}
+
+void cMainWindow::onMarkDifference()
+{
+	qint64			div	= m_lpLeftListModel->rowCount() / 1000;
+
+	ui->m_lpStatusBar->showMessage("processing left list...");
+
+	m_lpProgressBar->setVisible(true);
+	m_lpProgressBar->setRange(0, m_lpLeftListModel->rowCount());
+
+	QVariant	white	= QVariant::fromValue(QBrush(QColor(Qt::white)));
+	QVariant	green	= QVariant::fromValue(QBrush(QColor(Qt::green)));
+
+	for(int i = 0;i < m_lpLeftListModel->rowCount();i++)
+	{
+		QStandardItem*	lpItem	= m_lpLeftListModel->item(i, 0);
+		cFile*			lpFile	= lpItem->data(Qt::UserRole+1).value<cFile*>();
+		QVariant		var;
+
+		if(m_listRight.contains(*lpFile))
+		{
+			lpItem->setData(green, Qt::BackgroundRole);
+			m_lpLeftListModel->setData(m_lpLeftListModel->index(i, 1), green, Qt::BackgroundRole);
+			m_lpLeftListModel->setData(m_lpLeftListModel->index(i, 2), green, Qt::BackgroundRole);
+#ifndef TREEVIEW
+			m_lpLeftListModel->setData(m_lpLeftListModel->index(i, 3), green, Qt::BackgroundRole);
+#endif
+		}
+
+		if(!(i % div))
+		{
+			m_lpProgressBar->setValue(i);
+			qApp->processEvents();
+		}
+	}
+
+	div	= m_lpRightListModel->rowCount() / 1000;
+
+	ui->m_lpStatusBar->showMessage("processing right list...");
+
+	m_lpProgressBar->setRange(0, m_lpRightListModel->rowCount());
+
+	for(int i = 0;i < m_lpRightListModel->rowCount();i++)
+	{
+		QStandardItem*	lpItem	= m_lpRightListModel->item(i, 0);
+		cFile*			lpFile	= lpItem->data(Qt::UserRole+1).value<cFile*>();
+		QBrush			brush(Qt::white);
+
+		if(m_listLeft.contains(*lpFile))
+		{
+			lpItem->setData(green, Qt::BackgroundRole);
+			m_lpRightListModel->setData(m_lpRightListModel->index(i, 1), green, Qt::BackgroundRole);
+			m_lpRightListModel->setData(m_lpRightListModel->index(i, 2), green, Qt::BackgroundRole);
+#ifndef TREEVIEW
+			m_lpRightListModel->setData(m_lpRightListModel->index(i, 3), green, Qt::BackgroundRole);
+#endif
+		}
+
+		if(!(i % div))
+		{
+			m_lpProgressBar->setValue(i);
+			qApp->processEvents();
+		}
+	}
+
+	m_lpProgressBar->setVisible(false);
+
+	ui->m_lpStatusBar->showMessage("done.", 5000);
+}
+
+void cMainWindow::onClearSelectionLeft()
+{
+	ui->m_lpLeftList->clearSelection();
+	m_lpRightListProxyModel->setFilterFile(nullptr);
+}
+
+void cMainWindow::onClearSelectionRight()
+{
+	ui->m_lpRightList->clearSelection();
+	m_lpLeftListProxyModel->setFilterFile(nullptr);
 }
 
 #ifdef TREEVIEW
@@ -256,6 +399,8 @@ void cMainWindow::displayList(QTreeView* lpView, QStandardItemModel* lpModel, cF
 
 	lpModel->setHorizontalHeaderLabels(header);
 	QStandardItem*		lpRoot		= lpModel->invisibleRootItem();
+
+	m_lpProgressBar->setRange(0, fileList.count());
 
 	for(cFileList::iterator i = fileList.begin();i != fileList.end();i++)
 	{

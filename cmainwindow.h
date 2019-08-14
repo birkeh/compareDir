@@ -27,6 +27,9 @@ private slots:
 	void							onLoadListFromFileLeft();
 	void							onLoadListFromFileRight();
 
+	void							onLoadListFromDirLeft();
+	void							onLoadListFromDirRight();
+
 	void							onLeftListSelected(const QItemSelection& selection, const QItemSelection& previous);
 	void							onRightListSelected(const QItemSelection& selection, const QItemSelection& previous);
 
@@ -34,6 +37,11 @@ private slots:
 	void							onMatchFileChecked(bool checked);
 	void							onMatchDateTimeChecked(bool checked);
 	void							onMatchSizeChecked(bool checked);
+
+	void							onMarkDifference();
+
+	void							onClearSelectionLeft();
+	void							onClearSelectionRight();
 
 private:
 	Ui::cMainWindow*				ui;

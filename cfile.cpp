@@ -97,8 +97,31 @@ void cFileList::parseLine(const QString& curDir, const QString& line)
 
 	QDateTime	dateTime	= QDateTime(QDate::fromString(date, "dd.MM.yyyy"), QTime::fromString(time, "hh:mm"));
 
-	if(file.endsWith(".nef", Qt::CaseInsensitive))
-		add(dir.replace("\\", "/"), file, dateTime, size.toLongLong(), false);
+	add(dir.replace("\\", "/"), file, dateTime, size.toLongLong(), false);
+}
+
+void cFileList::parseDir(const QString& dir, QStatusBar* lpStatusBar)
+{
+	QDir			_dir(dir);
+
+	if(lpStatusBar)
+	{
+		lpStatusBar->showMessage(_dir.path());
+		qApp->processEvents();
+	}
+
+	QFileInfoList	fileList	= _dir.entryInfoList(QDir::Files, QDir::Name);
+
+	for(QFileInfoList::iterator i = fileList.begin();i != fileList.end();i++)
+		add(_dir.path(), i->fileName(), i->birthTime(), i->size(), false);
+
+
+	QStringList	dirList	= _dir.entryList(QDir::AllDirs | QDir::NoSymLinks | QDir::NoDotAndDotDot, QDir::Name);
+
+	for(QStringList::iterator i = dirList.begin();i != dirList.end();i++)
+	{
+		parseDir(dir + QDir::separator() + *i, lpStatusBar);
+	}
 }
 
 bool cFileList::load(const QString& file, QProgressBar* lpProgressBar)
@@ -143,6 +166,15 @@ bool cFileList::load(const QString& file, QProgressBar* lpProgressBar)
 	}
 
 	inFile.close();
+
+	return(true);
+}
+
+bool cFileList::load(const QString& dir, QStatusBar* lpStatusBar)
+{
+	clear();
+
+	parseDir(dir, lpStatusBar);
 
 	return(true);
 }

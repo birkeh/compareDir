@@ -8,6 +8,8 @@
 #include <QDateTime>
 #include <QObject>
 #include <QProgressBar>
+#include <QStatusBar>
+#include <QDir>
 
 
 class cFile
@@ -41,6 +43,7 @@ class cFileList : public QList<cFile>
 {
 public:
 	bool		load(const QString& file, QProgressBar* lpProgressBar = nullptr);
+	bool		load(const QString& dir, QStatusBar* lpStatusBar = nullptr);
 	cFile*		add(const QString& dir, const QString& file, const QDateTime& dateTime, const qint64& size, bool search = true);
 	cFile*		find(const QString& dir, const QString& file, const QDateTime& dateTime, const qint64& size);
 
@@ -48,6 +51,7 @@ public:
 	bool		contains(cFile& file, bool bDir, bool bFile, bool bDate, bool bSize);
 private:
 	void		parseLine(const QString& curDir, const QString& line);
+	void		parseDir(const QString& dir, QStatusBar* lpStatusBar);
 };
 
 #endif // CFILE_H

@@ -48,6 +48,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QToolButton" name="m_lpMarkDifference">
+          <property name="text">
+           <string>mark difference</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <spacer name="horizontalSpacer_3">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -72,9 +79,23 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
+             <widget class="QToolButton" name="m_lpLoadListFromDirLeft">
+              <property name="text">
+               <string>from dir</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QToolButton" name="m_lpLoadListFromFileLeft">
               <property name="text">
                <string>from File</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="m_lpClearSelectionLeft">
+              <property name="text">
+               <string>clear selection</string>
               </property>
              </widget>
             </item>
@@ -107,9 +128,23 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
+             <widget class="QToolButton" name="m_lpLoadListFromDirRight">
+              <property name="text">
+               <string>from dir</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QToolButton" name="m_lpLoadListFromFileRight">
               <property name="text">
                <string>from File</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QToolButton" name="m_lpClearSelectionRight">
+              <property name="text">
+               <string>clear selection</string>
               </property>
              </widget>
             </item>

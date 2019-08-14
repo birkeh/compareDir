@@ -24,8 +24,6 @@ bool cSortFilterProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &s
 	if(!m_lpFile)
 		return(true);
 
-	bool		bValid		= false;
-
 	QModelIndex	index0		= sourceModel()->index(sourceRow, 0, sourceParent);
 	cFile*		lpFile		= sourceModel()->data(index0, Qt::UserRole+1).value<cFile*>();
 
