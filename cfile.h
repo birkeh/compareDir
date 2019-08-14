@@ -7,13 +7,14 @@
 #include <QString>
 #include <QDateTime>
 #include <QObject>
+#include <QProgressBar>
 
 
-class cFile : public QObject
+class cFile
 {
-	Q_OBJECT
 public:
-	explicit cFile(const QString& dir, const QString& file, const QDateTime& dateTime, const qint64& size, QObject *parent = nullptr);
+	cFile();
+	explicit cFile(const QString& dir, const QString& file, const QDateTime& dateTime, const qint64& size);
 	virtual ~cFile();
 
 	bool		compare(const QString& dir, const QString& file, const QDateTime& dateTime, const qint64& size);
@@ -22,6 +23,10 @@ public:
 	QString		file();
 	QDateTime	dateTime();
 	qint64		size();
+
+	void		setMatch(bool dir, bool file, bool dateTime, bool size);
+
+	bool		operator==(const cFile& other) const;
 private:
 	QString		m_dir;
 	QString		m_file;
@@ -29,15 +34,18 @@ private:
 	qint64		m_size;
 };
 
+Q_DECLARE_METATYPE(cFile)
 Q_DECLARE_METATYPE(cFile*)
 
-class cFileList : public QList<cFile*>
+class cFileList : public QList<cFile>
 {
 public:
-	bool		load(const QString& file);
+	bool		load(const QString& file, QProgressBar* lpProgressBar = nullptr);
 	cFile*		add(const QString& dir, const QString& file, const QDateTime& dateTime, const qint64& size, bool search = true);
 	cFile*		find(const QString& dir, const QString& file, const QDateTime& dateTime, const qint64& size);
 
+	bool		contains(cFile& file);
+	bool		contains(cFile& file, bool bDir, bool bFile, bool bDate, bool bSize);
 private:
 	void		parseLine(const QString& curDir, const QString& line);
 };

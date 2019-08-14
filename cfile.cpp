@@ -1,11 +1,22 @@
+#include "common.h"
+
 #include "cfile.h"
+
+#include <QApplication>
 
 #include <QFile>
 #include <QTextStream>
 
 
-cFile::cFile(const QString& dir, const QString& file, const QDateTime& dateTime, const qint64& size, QObject* parent) :
-	QObject(parent),
+cFile::cFile() :
+	m_dir(""),
+	m_file(""),
+	m_dateTime(QDateTime()),
+	m_size(0)
+{
+}
+
+cFile::cFile(const QString& dir, const QString& file, const QDateTime& dateTime, const qint64& size) :
 	m_dir(dir),
 	m_file(file),
 	m_dateTime(dateTime),
@@ -50,26 +61,47 @@ qint64 cFile::size()
 	return(m_size);
 }
 
+bool cFile::operator==(const cFile& other) const
+{
+	if(g_bMatchDir)
+		if(m_dir != other.m_dir)
+			return(false);
+	if(g_bMatchFile)
+		if(m_file != other.m_file)
+			return(false);
+	if(g_bMatchDateTime)
+		if(m_dateTime != other.m_dateTime)
+			return(false);
+	if(g_bMatchSize)
+		if(m_size != other.m_size)
+			return(false);
+
+	return(true);
+}
+
 void cFileList::parseLine(const QString& curDir, const QString& line)
 {
 	QString	date;
 	QString	time;
 	QString	size;
 	QString	file;
+	QString	dir;
 
 	date	= line.left(10);
 	time	= line.mid(12, 5);
 	size	= line.mid(17, 18);
 	file	= line.mid(36);
+	dir		= curDir;
 
 	size	= size.replace("(", "").replace(")", "").replace(QChar(0xA0), "").replace(" ", "").replace(".", "");
 
 	QDateTime	dateTime	= QDateTime(QDate::fromString(date, "dd.MM.yyyy"), QTime::fromString(time, "hh:mm"));
 
-	add(curDir, file, dateTime, size.toLongLong(), false);
+	if(file.endsWith(".nef", Qt::CaseInsensitive))
+		add(dir.replace("\\", "/"), file, dateTime, size.toLongLong(), false);
 }
 
-bool cFileList::load(const QString& file)
+bool cFileList::load(const QString& file, QProgressBar* lpProgressBar)
 {
 	clear();
 
@@ -78,7 +110,10 @@ bool cFileList::load(const QString& file)
 	if(!inFile.open(QIODevice::ReadOnly))
 		return(false);
 
+	qint64	cur	= 0;
+	qint64	max	= inFile.size();
 
+	lpProgressBar->setRange(0, 100);
 	QTextStream in(&inFile);
 
 	QString		curDir	= "";
@@ -86,6 +121,7 @@ bool cFileList::load(const QString& file)
 	while(!in.atEnd())
 	{
 		QString		line = in.readLine();
+		cur	+= line.length()+2;
 
 		if(line.left(17) == " Volume in drive ")
 			continue;
@@ -101,6 +137,9 @@ bool cFileList::load(const QString& file)
 			curDir	= line.mid(14);
 		else
 			parseLine(curDir, line);
+
+		lpProgressBar->setValue(static_cast<int>(cur*100/max));
+		qApp->processEvents();
 	}
 
 	inFile.close();
@@ -118,7 +157,7 @@ cFile* cFileList::add(const QString& dir, const QString& file, const QDateTime& 
 	if(!lpFile)
 	{
 		lpFile	= new cFile(dir, file, dateTime, size);
-		append(lpFile);
+		append(*lpFile);
 	}
 	return(lpFile);
 }
@@ -127,9 +166,23 @@ cFile* cFileList::find(const QString& dir, const QString& file, const QDateTime&
 {
 	for(cFileList::iterator i = begin();i != end();i++)
 	{
-		cFile*	lpFile	= *i;
-		if(lpFile->compare(dir, file, dateTime, size))
-			return(lpFile);
+		if(i->compare(dir, file, dateTime, size))
+			return(&(*i));
 	}
 	return(nullptr);
+}
+
+bool cFileList::contains(cFile& file, bool bDir, bool bFile, bool bDate, bool bSize)
+{
+	g_bMatchDir			= bDir;
+	g_bMatchFile		= bFile;
+	g_bMatchDateTime	= bDate;
+	g_bMatchSize		= bSize;
+
+	return(QList::contains(file));
+}
+
+bool cFileList::contains(cFile& file)
+{
+	return(QList::contains(file));
 }

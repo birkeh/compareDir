@@ -26,12 +26,15 @@ CONFIG += c++11
 
 SOURCES += \
         cfile.cpp \
+        csortfilterproxymodel.cpp \
         main.cpp \
         cmainwindow.cpp
 
 HEADERS += \
         cfile.h \
-        cmainwindow.h
+        cmainwindow.h \
+        common.h \
+        csortfilterproxymodel.h
 
 FORMS += \
         cmainwindow.ui
